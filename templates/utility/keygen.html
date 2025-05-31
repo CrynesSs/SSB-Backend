@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generate Keys</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 2em;
+        }
+
+        button {
+            padding: 0.5em 1em;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+<h1>Generate Keypairs</h1>
+<p>This will generate one RSA keypairs in your browser and save them to your machine.</p>
+<button id="gen-button" onclick="generateAndDownloadKeys()">Generate & Download</button>
+
+<script>
+    async function generateAndDownloadKeys() {
+        let button = document.getElementById("gen-button")
+        button.disabled = true;
+
+        alert("Keypair is now generating, this might take a second")
+
+        const p1 = crypto.subtle.generateKey(
+            {name: "RSA-OAEP", modulusLength: 8192, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-512"},
+            true,
+            ["decrypt", "encrypt"]
+        ).then(async (keypair) => {
+            await exportAndDownloadKeyPair(keypair, "QuickShareBoxKey")
+                .then(() => {
+                    console.log("Key one Exported Correctly")
+                }).catch((r) => {
+                console.log(r);
+            });
+        }).catch((reason) => {
+            console.log(reason)
+        })
+
+        button.disabled = false;
+        await p1.then(()=>{
+            alert("Keypair generated and downloaded. Redirecting to login...");
+            window.location.href = "{{ url_for('login') }}"
+        }).catch((r)=>{
+            alert("Keypair generation failed : " + r)
+        })
+
+    }
+
+    async function exportAndDownloadKeyPair(keyPair, namePrefix) {
+        const privateKey = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+        const publicKey = await crypto.subtle.exportKey("spki", keyPair.publicKey);
+
+        downloadPEM(publicKey, `${namePrefix}_public.pem`, "PUBLIC KEY");
+        downloadPEM(privateKey, `${namePrefix}_private.pem`, "PRIVATE KEY");
+    }
+
+    function downloadPEM(buffer, filename, label) {
+        const base64 = arrayBufferToBase64(buffer);
+        const pem = `-----BEGIN ${label}-----\n${chunkString(base64, 64)}\n-----END ${label}-----\n`;
+        const blob = new Blob([pem], {type: "application/x-pem-file"});
+
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+
+        URL.revokeObjectURL(url);
+    }
+
+    function arrayBufferToBase64(buffer) {
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let b of bytes) binary += String.fromCharCode(b);
+        return btoa(binary);
+    }
+
+    function chunkString(str, size) {
+        return str.match(new RegExp('.{1,' + size + '}', 'g')).join('\n');
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/home_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles/rooms_style.css') }}">
+</head>
+<body>
+<div id="page-container">
+    <div id="top-bar">
+        <div class="button-container">
+            <button id="rooms-button" onclick="handleRoomButton({{ url_for('rooms.rooms') }})">
+                ROOMS
+            </button>
+
+            <script>
+                document.getElementById("rooms-button").addEventListener("click", function () {
+                    window.location.href = "{{ url_for('rooms.rooms') }}";
+                });
+            </script>
+        </div>
+        <div class="button-container">
+            <button id="login-button">
+                LOGIN
+            </button>
+            <script>
+                document.getElementById("login-button").addEventListener("click",function (){
+                    window.location.href = "{{ url_for('login.login') }}"
+                })
+            </script>
+        </div>
+    </div>
+    <div id="main-frame">
+        {% block content %}{% endblock %}
+    </div>
+    <div id="footer">
+
+    </div>
+</div>
+</body>
+</html>

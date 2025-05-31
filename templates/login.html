@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="{{ url_for('static', filename='scripts/login.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static',filename='styles/login_style.css') }}">
+</head>
+<body>
+<div id="bg">
+    <div id="form-container">
+        <form id="login-form">
+            <div class="login-field-container">
+                <div class="password-box">
+                    <div class="password-label">Username</div>
+                    <input class="login-input" type="password" id="username"/>
+                </div>
+            </div>
+            <div class="login-field-container">
+                <div class="password-box">
+                    <div class="password-label">Password</div>
+                    <input class="login-input" type="password" id="password"/>
+                </div>
+            </div>
+            <div class="login-field-container">
+                <div class="password-box">
+                    <div class="password-label">Passphrase</div>
+                    <input class="login-input" type="password" id="passphrase"/>
+                </div>
+            </div>
+            <div class="login-field-container">
+                <div class="password-box-file">
+                    <div class="password-label">Public Key</div>
+                    <input class="login-input-file" type="file" id="publicKeyFile" accept=".pem"/>
+                </div>
+            </div>
+            <div class="button-panel">
+                <button type="submit">Login</button>
+                <button type="button" id="signup-button">Signup</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+</body>
+</html>
