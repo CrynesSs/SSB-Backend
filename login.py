@@ -11,6 +11,21 @@ from util import hash_with_salt, generate_salt
 login_bp = Blueprint('login', __name__, url_prefix='/login')
 
 
+@login_bp.route('/salts',methods=['Post'])
+def salts():
+    try:
+       data = request.get_json()
+       key = data['public_key']
+       db = get_db()
+       user = db.execute("SELECT * FROM users WHERE pubkey = ?",(key,)).fetchone()
+       if user is None:
+           return jsonify({"message": "Invalid username or password or user not found"}), 401
+       return jsonify({"username_salt" : user["username_salt"],"password_salt" : user["password_salt"],"passphrase_salt" : user["passphrase_salt"]})
+    except Exception as e:
+        print(e)
+        return jsonify({"message": "Invalid username or password or user not found"}), 401
+
+
 @login_bp.route('/', methods=['GET'])
 def login():
     token = request.cookies.get('auth_token')

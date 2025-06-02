@@ -14,16 +14,15 @@ def create_account():
     username =base64.b64decode( data['username'])
     password = base64.b64decode(data['password'])
     passphrase = base64.b64decode(data['passphrase'])
+    username_salt =data['username_salt']
+    password_salt = data['password_salt']
+    passphrase_salt = data['passphrase_salt']
     public_key = data['public_key']
     db = get_db()
 
     result =db.execute("SELECT * FROM users WHERE pubkey = ?", (public_key,)).fetchone()
     if result is not None:
         return jsonify({"message": "Public Key is already in Use"}), 401
-
-    username_salt = generate_salt()
-    password_salt = generate_salt()
-    passphrase_salt = generate_salt()
 
     username = hash_with_salt(username.hex(),username_salt)
     password = hash_with_salt(password.hex(),password_salt)
