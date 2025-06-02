@@ -6,6 +6,7 @@ from random import randbytes
 from flask import render_template, jsonify, request, Blueprint, session, abort, g, make_response, redirect, url_for
 
 from db import get_db
+from util import hash_with_salt, generate_salt
 
 login_bp = Blueprint('login', __name__, url_prefix='/login')
 
@@ -33,16 +34,29 @@ def login_post():
         return jsonify(message='Malformed Request'), 400
 
     db = get_db()
+    proto_user = db.execute("SELECT * FROM users WHERE pubkey = ?", (public_key,)).fetchone()
+    if proto_user is None:
+        return jsonify({"message": "Invalid username or password or user not found"}), 401
+    # Get the salts from the Database
+    username_salt = proto_user["username_salt"]
+    password_salt = proto_user["password_salt"]
+    passphrase_salt = proto_user["passphrase_salt"]
+
+    username = hash_with_salt(username.hex(), username_salt)
+    password = hash_with_salt(password.hex(), password_salt)
+    passphrase = hash_with_salt(passphrase.hex(), passphrase_salt)
+
     user = db.execute(
-        "SELECT * FROM users WHERE username_hash = ? AND password_hash = ? AND passphrase_hash = ? AND pubkey = ?",
-        (username, password, passphrase, public_key)).fetchone()
-    db.commit()
+        "SELECT * FROM users WHERE username_hash = ? AND password_hash = ? AND passphrase_hash = ?",
+        (username, password, passphrase)).fetchone()
     if user is None:
         return jsonify({"message": "Invalid username or password or user not found"}), 401
 
-    data = (username + password + passphrase) + randbytes(32)
+
+    data = (base64.b64decode(username) + base64.b64decode(password) + base64.b64decode(passphrase)) + randbytes(32)
 
     cookie = hashlib.sha256(data).digest()
+
     db.execute("INSERT INTO cookies (user_id, cookie) VALUES (?,?)", (user['id'], cookie))
     db.commit()
 

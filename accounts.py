@@ -4,6 +4,7 @@ from flask import Blueprint, session, redirect, request, jsonify, render_templat
 
 from db import get_db
 from login import login_required
+from util import generate_salt, hash_with_salt
 
 accounts_bp = Blueprint('accounts', __name__, url_prefix='/accounts')
 
@@ -15,11 +16,20 @@ def create_account():
     passphrase = base64.b64decode(data['passphrase'])
     public_key = data['public_key']
     db = get_db()
-    result =db.execute("SELECT * FROM users WHERE username_hash = ?", (username,)).fetchone()
-    if result is not None:
-        return jsonify({"message": "Username is already in Use"}), 401
 
-    db.execute("INSERT INTO users (username_hash, password_hash, passphrase_hash, pubkey) VALUES (?,?,?,?)",(username,password,passphrase,public_key))
+    result =db.execute("SELECT * FROM users WHERE pubkey = ?", (public_key,)).fetchone()
+    if result is not None:
+        return jsonify({"message": "Public Key is already in Use"}), 401
+
+    username_salt = generate_salt()
+    password_salt = generate_salt()
+    passphrase_salt = generate_salt()
+
+    username = hash_with_salt(username.hex(),username_salt)
+    password = hash_with_salt(password.hex(),password_salt)
+    passphrase = hash_with_salt(passphrase.hex(),passphrase_salt)
+
+    db.execute("INSERT INTO users (username_hash, password_hash, passphrase_hash,username_salt,password_salt,passphrase_salt, pubkey) VALUES (?,?,?,?,?,?,?)",(username,password,passphrase,username_salt,password_salt,passphrase_salt,public_key))
     db.commit()
     return jsonify({"message": "Account created successfully"}), 200
 
