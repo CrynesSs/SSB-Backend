@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS cookies;
 CREATE TABLE IF NOT EXISTS users
 (
     id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    vanity_name           TEXT UNIQUE NOT NULL ,
     username_hash         TEXT UNIQUE NOT NULL,
     password_hash         TEXT        NOT NULL,
     passphrase_hash       TEXT        NOT NULL,
