@@ -1,8 +1,9 @@
 import base64
-
+import uuid
 from flask import Blueprint, session, redirect, request, jsonify, render_template, make_response
 
 from db import get_db
+
 from login import login_required
 from util import generate_salt, hash_with_salt
 
@@ -11,24 +12,34 @@ accounts_bp = Blueprint('accounts', __name__, url_prefix='/accounts')
 @accounts_bp.route('/create_account', methods=['POST'])
 def create_account():
     data = request.get_json()
-    username =base64.b64decode( data['username'])
-    password = base64.b64decode(data['password'])
-    passphrase = base64.b64decode(data['passphrase'])
-    username_salt =data['username_salt']
-    password_salt = data['password_salt']
-    passphrase_salt = data['passphrase_salt']
-    public_key = data['public_key']
+    try:
+        username =base64.b64decode( data['username'])
+        password = base64.b64decode(data['password'])
+        passphrase = base64.b64decode(data['passphrase'])
+        username_salt =data['username_salt']
+        password_salt = data['password_salt']
+        passphrase_salt = data['passphrase_salt']
+        public_key = data['public_key']
+    except KeyError:
+        return jsonify({"error": "Malformed Request"}), 401
+
     db = get_db()
 
     result =db.execute("SELECT * FROM users WHERE pubkey = ?", (public_key,)).fetchone()
+
     if result is not None:
         return jsonify({"message": "Public Key is already in Use"}), 401
+
+    result =db.execute("SELECT * FROM users WHERE username_hash = ?", (username,)).fetchone()
+
+    if result is not None:
+        return jsonify({"message": "Username is already in use"}), 401
 
     username = hash_with_salt(username.hex(),username_salt)
     password = hash_with_salt(password.hex(),password_salt)
     passphrase = hash_with_salt(passphrase.hex(),passphrase_salt)
 
-    db.execute("INSERT INTO users (username_hash, password_hash, passphrase_hash,username_salt,password_salt,passphrase_salt, pubkey) VALUES (?,?,?,?,?,?,?)",(username,password,passphrase,username_salt,password_salt,passphrase_salt,public_key))
+    db.execute("INSERT INTO users (username_hash, password_hash, passphrase_hash,username_salt,password_salt,passphrase_salt, pubkey,vanity_name) VALUES (?,?,?,?,?,?,?,?)",(username,password,passphrase,username_salt,password_salt,passphrase_salt,public_key))
     db.commit()
     return jsonify({"message": "Account created successfully"}), 200
 

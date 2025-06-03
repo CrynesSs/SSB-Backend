@@ -1,0 +1,7 @@
+
+/static
+/templates
+/instance
+schema.sql
+.env
+.gitignore
