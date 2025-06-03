@@ -12,12 +12,6 @@ from db import get_db
 util_bp = Blueprint('util', __name__, url_prefix='/util')
 
 
-@util_bp.route('/gen_keys')
-def genkeys():
-    return render_template('utility/keygen.html')
-
-
-
 def cleanup():
     db = get_db()
     db.execute("DELETE FROM cookies WHERE created < datetime('now','-2 hours')")

@@ -25,15 +25,7 @@ def salts():
         print(e)
         return jsonify({"message": "Invalid username or password or user not found"}), 401
 
-
-@login_bp.route('/', methods=['GET'])
-def login():
-    token = request.cookies.get('auth_token')
-    if token is None:
-        return render_template('login.html')
-    return redirect(url_for('accounts.dashboard'))
-
-@login_bp.route('/', methods=['POST'])
+@login_bp.route('', methods=['POST'])
 def login_post():
     data = request.get_json()
     token = request.cookies.get('auth_token')

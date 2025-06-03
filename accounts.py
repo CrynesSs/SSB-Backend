@@ -54,11 +54,10 @@ def logout():
     return response
 
 
-
-@accounts_bp.route("/dashboard")
+@accounts_bp.route("/dashboard",methods=["POST"])
 @login_required
-def dashboard():
-    return render_template("dashboard.html")
+def dashboard_post():
+    return "TODO"
 
 @accounts_bp.route("/friends", methods=["GET"])
 @login_required
