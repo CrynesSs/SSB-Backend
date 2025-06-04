@@ -18,7 +18,7 @@ app.config["SESSION_COOKIE_SECURE"] = True
 
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_NAME"] = "auth_token"
-
+app.config['DATABASE'] = os.path.join(app.instance_path, 'your_database.db')
 app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024 * 1024
 
 app.register_blueprint(login_bp)
@@ -26,8 +26,6 @@ app.register_blueprint(accounts.accounts_bp)
 app.register_blueprint(util.util_bp)
 app.register_blueprint(rooms.rooms_bp)
 app.register_blueprint(data_handler)
-
-app.config['DATABASE'] = os.path.join(app.instance_path, 'your_database.db')
 
 # Ensure instance folder exists
 os.makedirs(app.instance_path, exist_ok=True)

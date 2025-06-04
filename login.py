@@ -19,11 +19,11 @@ def salts():
        db = get_db()
        user = db.execute("SELECT * FROM users WHERE pubkey = ?",(key,)).fetchone()
        if user is None:
-           return jsonify({"message": "Invalid username or password or user not found"}), 401
-       return jsonify({"username_salt" : user["username_salt"],"password_salt" : user["password_salt"],"passphrase_salt" : user["passphrase_salt"]})
+           return jsonify({"error": "Public Key not found. Please Register"}), 401
+       return jsonify({"username_salt" : user["username_salt"],"password_salt" : user["password_salt"],"passphrase_salt" : user["passphrase_salt"]}),200
     except Exception as e:
         print(e)
-        return jsonify({"message": "Invalid username or password or user not found"}), 401
+        return jsonify({"error": "Invalid username or password or user not found"}), 401
 
 @login_bp.route('', methods=['POST'])
 def login_post():

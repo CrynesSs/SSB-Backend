@@ -9,6 +9,23 @@ from util import generate_salt, hash_with_salt
 
 accounts_bp = Blueprint('accounts', __name__, url_prefix='/accounts')
 
+
+@accounts_bp.route('/delete_account', methods=['POST'])
+@login_required
+def delete_account():
+    data = request.get_json()
+    username =base64.b64decode( data['username'])
+    public_key = data['public_key']
+    db = get_db()
+    result = db.execute("SELECT * FROM users WHERE username_hash = ? AND pubkey = ?", (username,public_key)).fetchone()
+    if result is None:
+        return jsonify({"message": "User not found"}), 404
+
+    db.execute("DELETE FROM users WHERE username_hash= ? AND pubkey = ?", (username,public_key))
+    db.commit()
+    return jsonify({"message": "Account deleted successfully"}), 200
+
+
 @accounts_bp.route('/create_account', methods=['POST'])
 def create_account():
     data = request.get_json()
@@ -39,7 +56,9 @@ def create_account():
     password = hash_with_salt(password.hex(),password_salt)
     passphrase = hash_with_salt(passphrase.hex(),passphrase_salt)
 
-    db.execute("INSERT INTO users (username_hash, password_hash, passphrase_hash,username_salt,password_salt,passphrase_salt, pubkey,vanity_name) VALUES (?,?,?,?,?,?,?,?)",(username,password,passphrase,username_salt,password_salt,passphrase_salt,public_key))
+    vanity_name = uuid.uuid4().hex
+
+    db.execute("INSERT INTO users (username_hash, password_hash, passphrase_hash,username_salt,password_salt,passphrase_salt, pubkey,vanity_name) VALUES (?,?,?,?,?,?,?,?)",(username,password,passphrase,username_salt,password_salt,passphrase_salt,public_key,vanity_name))
     db.commit()
     return jsonify({"message": "Account created successfully"}), 200
 
